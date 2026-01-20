@@ -1,8 +1,33 @@
 import 'package:flutter/material.dart';
-import 'category_list_screen.dart';
+import '../services/jobseeker_service.dart'; // <-- Import
+import 'jobseeker_dashboard_page.dart'; // <-- Import
 
-class CreateProfilePage extends StatelessWidget {
+class CreateProfilePage extends StatefulWidget {
   const CreateProfilePage({super.key});
+
+  @override
+  State<CreateProfilePage> createState() => _CreateProfilePageState();
+}
+
+class _CreateProfilePageState extends State<CreateProfilePage> {
+  // ✅ Controllers
+  final TextEditingController nameController = TextEditingController();
+  final TextEditingController emailController = TextEditingController();
+  final TextEditingController phoneController = TextEditingController();
+  final TextEditingController addressController = TextEditingController();
+  final TextEditingController skillsController = TextEditingController();
+  final TextEditingController educationController = TextEditingController();
+
+  @override
+  void dispose() {
+    nameController.dispose();
+    emailController.dispose();
+    phoneController.dispose();
+    addressController.dispose();
+    skillsController.dispose();
+    educationController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -51,17 +76,16 @@ class CreateProfilePage extends StatelessWidget {
             ),
 
             const SizedBox(height: 8),
-
             const Text("Upload Photo", style: TextStyle(fontSize: 14)),
-
             const SizedBox(height: 25),
 
-            inputField("Full Name"),
-            inputField("Email"),
-            inputField("Phone number"),
-            inputField("Address"),
-            inputField("Skills"),
-            inputField("Education"),
+            // INPUT FIELDS WITH CONTROLLERS
+            inputField("Full Name", nameController),
+            inputField("Email", emailController),
+            inputField("Phone number", phoneController),
+            inputField("Address", addressController),
+            inputField("Skills", skillsController),
+            inputField("Education", educationController),
 
             const SizedBox(height: 25),
 
@@ -70,11 +94,20 @@ class CreateProfilePage extends StatelessWidget {
               width: 220,
               height: 45,
               child: ElevatedButton(
-                onPressed: () {
+                onPressed: () async {
+                  // ✅ Backend Save
+                  await JobSeekerService().saveJobSeekerProfile(
+                    name: nameController.text,
+                    email: emailController.text,
+                    phone: phoneController.text,
+                    skills: skillsController.text,
+                  );
+
+                  // ✅ Redirect
                   Navigator.pushReplacement(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => CategoryListScreen(),
+                      builder: (context) => const JobseekerDashboard(),
                     ),
                   );
                 },
@@ -99,10 +132,11 @@ class CreateProfilePage extends StatelessWidget {
   }
 
   // INPUT FIELD WIDGET
-  Widget inputField(String hint) {
+  Widget inputField(String hint, TextEditingController controller) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 6),
       child: TextField(
+        controller: controller,
         decoration: InputDecoration(
           hintText: hint,
           filled: true,

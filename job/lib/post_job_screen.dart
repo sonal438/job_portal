@@ -1,7 +1,23 @@
 import 'package:flutter/material.dart';
+import 'package:job/services/job_service.dart';
 
-class PostJobScreen extends StatelessWidget {
+class PostJobScreen extends StatefulWidget {
   const PostJobScreen({super.key});
+
+  @override
+  State<PostJobScreen> createState() => _PostJobScreenState();
+}
+
+class _PostJobScreenState extends State<PostJobScreen> {
+  // 🔹 Controllers
+  final TextEditingController titleController = TextEditingController();
+  final TextEditingController locationController = TextEditingController();
+  final TextEditingController employmentTypeController =
+      TextEditingController();
+  final TextEditingController salaryController = TextEditingController();
+  final TextEditingController descriptionController = TextEditingController();
+
+  String? category;
 
   @override
   Widget build(BuildContext context) {
@@ -11,9 +27,7 @@ class PostJobScreen extends StatelessWidget {
         backgroundColor: const Color(0xFFBBD2F0),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () {
-            Navigator.pop(context);
-          },
+          onPressed: () => Navigator.pop(context),
         ),
         title: const Text(
           'Employer Dashboard',
@@ -28,19 +42,19 @@ class PostJobScreen extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _label('Job Title'),
-            _textField(''),
+            _textField(titleController),
 
             _label('Category'),
             _dropdownField(),
 
             _label('Location'),
-            _textField(''),
+            _textField(locationController),
 
             _label('Employment time'),
-            _textField(''),
+            _textField(employmentTypeController),
 
             _label('Salary'),
-            _textField(''),
+            _textField(salaryController),
 
             _label('Description'),
             _descriptionField(),
@@ -57,8 +71,17 @@ class PostJobScreen extends StatelessWidget {
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),
-                onPressed: () {
-                  // later: post job logic
+                onPressed: () async {
+                  await JobService().postJob(
+                    title: titleController.text.trim(),
+                    category: category ?? '',
+                    location: locationController.text.trim(),
+                    employmentType: employmentTypeController.text.trim(),
+                    salary: salaryController.text.trim(),
+                    description: descriptionController.text.trim(),
+                  );
+
+                  Navigator.pop(context);
                 },
                 child: const Text(
                   'Post Job',
@@ -72,7 +95,7 @@ class PostJobScreen extends StatelessWidget {
     );
   }
 
-  // ---- Reusable Widgets ----
+  // ---- Widgets ----
 
   Widget _label(String text) {
     return Padding(
@@ -84,7 +107,7 @@ class PostJobScreen extends StatelessWidget {
     );
   }
 
-  Widget _textField(String hint) {
+  Widget _textField(TextEditingController controller) {
     return Container(
       height: 45,
       decoration: BoxDecoration(
@@ -92,10 +115,10 @@ class PostJobScreen extends StatelessWidget {
         borderRadius: BorderRadius.circular(10),
       ),
       child: TextField(
-        decoration: InputDecoration(
-          hintText: hint,
+        controller: controller,
+        decoration: const InputDecoration(
           border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 12),
+          contentPadding: EdgeInsets.symmetric(horizontal: 12),
         ),
       ),
     );
@@ -108,9 +131,10 @@ class PostJobScreen extends StatelessWidget {
         color: Colors.grey.shade200,
         borderRadius: BorderRadius.circular(10),
       ),
-      child: const TextField(
+      child: TextField(
+        controller: descriptionController,
         maxLines: 5,
-        decoration: InputDecoration(
+        decoration: const InputDecoration(
           border: InputBorder.none,
           contentPadding: EdgeInsets.all(12),
         ),
@@ -128,6 +152,7 @@ class PostJobScreen extends StatelessWidget {
       ),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String>(
+          value: category,
           hint: const Text('Select category'),
           items: const [
             DropdownMenuItem(value: 'Education', child: Text('Education')),
@@ -135,7 +160,11 @@ class PostJobScreen extends StatelessWidget {
             DropdownMenuItem(value: 'IT', child: Text('IT')),
             DropdownMenuItem(value: 'Business', child: Text('Business')),
           ],
-          onChanged: (value) {},
+          onChanged: (value) {
+            setState(() {
+              category = value;
+            });
+          },
         ),
       ),
     );

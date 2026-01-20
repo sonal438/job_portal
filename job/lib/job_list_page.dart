@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'job_detail_page.dart';
 
@@ -12,41 +13,56 @@ class JobListPage extends StatelessWidget {
       appBar: AppBar(title: Text('$category Jobs'), centerTitle: true),
       body: Padding(
         padding: const EdgeInsets.all(16),
-        child: ListView(
-          children: [
-            jobCard(context, 'Teacher', 'Kathmandu', 'Full Time'),
-            jobCard(context, 'Lecturer', 'Pokhara', 'Part Time'),
-            jobCard(context, 'Instructor', 'Lalitpur', 'Contract'),
-          ],
-        ),
-      ),
-    );
-  }
+        child: StreamBuilder<QuerySnapshot>(
+          stream: FirebaseFirestore.instance
+              .collection("jobs")
+              .where("category", isEqualTo: category)
+              .snapshots(),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            }
 
-  Widget jobCard(
-    BuildContext context,
-    String title,
-    String location,
-    String type,
-  ) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 12),
-      child: ListTile(
-        title: Text(title),
-        subtitle: Text('$location • $type'),
-        trailing: const Icon(Icons.arrow_forward_ios),
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => JobDetailPage(
-                jobTitle: title,
-                location: location,
-                jobType: type,
-              ),
-            ),
-          );
-        },
+            if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+              return const Center(child: Text("No jobs found"));
+            }
+
+            var jobs = snapshot.data!.docs;
+
+            return ListView.builder(
+              itemCount: jobs.length,
+              itemBuilder: (context, index) {
+                var job = jobs[index];
+
+                return Card(
+                  margin: const EdgeInsets.only(bottom: 12),
+                  child: ListTile(
+                    title: Text(job["title"]),
+                    subtitle: Text(
+                      '${job["location"]} • ${job["employmentType"]}',
+                    ),
+                    trailing: const Icon(Icons.arrow_forward_ios),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => JobDetailPage(
+                            jobId: job.id, // ✅ document id
+                            jobTitle: job["title"],
+                            location: job["location"],
+                            jobType: job["employmentType"],
+                            salary: job["salary"],
+                            description: job["description"],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                );
+              },
+            );
+          },
+        ),
       ),
     );
   }

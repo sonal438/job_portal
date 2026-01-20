@@ -1,8 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:job/employer_dashboard_page.dart';
+import 'package:job/services/user_service.dart';
 
-class EmployerCreateProfilePage extends StatelessWidget {
+class EmployerCreateProfilePage extends StatefulWidget {
   const EmployerCreateProfilePage({super.key});
+
+  @override
+  State<EmployerCreateProfilePage> createState() =>
+      _EmployerCreateProfilePageState();
+}
+
+class _EmployerCreateProfilePageState extends State<EmployerCreateProfilePage> {
+  // 🔹 Controllers
+  final TextEditingController nameController = TextEditingController();
+  final TextEditingController emailController = TextEditingController();
+  final TextEditingController phoneController = TextEditingController();
+  final TextEditingController addressController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -48,28 +61,34 @@ class EmployerCreateProfilePage extends StatelessWidget {
             ),
 
             const SizedBox(height: 8),
-
             const Text("Upload Photo", style: TextStyle(fontSize: 14)),
 
             const SizedBox(height: 25),
 
-            inputField("Full Name"),
-            inputField("Email"),
-            inputField("Phone number"),
-            inputField("Address"),
+            inputField("Full Name", nameController),
+            inputField("Email", emailController),
+            inputField("Phone number", phoneController),
+            inputField("Address", addressController),
 
             const SizedBox(height: 30),
 
-            // SAVE PROFILE BUTTON
+            // ✅ SAVE PROFILE BUTTON (FIREBASE CONNECTED)
             SizedBox(
               width: 240,
               height: 45,
               child: ElevatedButton(
-                onPressed: () {
+                onPressed: () async {
+                  await UserService().saveEmployerProfile(
+                    name: nameController.text.trim(),
+                    email: emailController.text.trim(),
+                    phone: phoneController.text.trim(),
+                    address: addressController.text.trim(),
+                  );
+
                   Navigator.pushReplacement(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => const EmployerDashboardPage(),
+                      builder: (_) => const EmployerDashboardPage(),
                     ),
                   );
                 },
@@ -94,10 +113,11 @@ class EmployerCreateProfilePage extends StatelessWidget {
   }
 
   // INPUT FIELD WIDGET
-  Widget inputField(String hint) {
+  Widget inputField(String hint, TextEditingController controller) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 6),
       child: TextField(
+        controller: controller,
         decoration: InputDecoration(
           hintText: hint,
           filled: true,

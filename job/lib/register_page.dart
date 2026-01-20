@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'employer_register_page.dart';
 import 'create_account_page.dart';
+import 'employer_register_page.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -43,7 +43,7 @@ class _RegisterPageState extends State<RegisterPage> {
               // JOB SEEKER CARD
               roleCard(
                 title: "Job seeker",
-                icon: Icons.folder,
+                icon: Icons.person_outline,
                 isSelected: selectedRole == "jobseeker",
                 onTap: () {
                   setState(() {
@@ -57,7 +57,7 @@ class _RegisterPageState extends State<RegisterPage> {
               // EMPLOYER CARD
               roleCard(
                 title: "Employer",
-                icon: Icons.person,
+                icon: Icons.business,
                 isSelected: selectedRole == "employer",
                 onTap: () {
                   setState(() {
@@ -79,14 +79,15 @@ class _RegisterPageState extends State<RegisterPage> {
                               context,
                               MaterialPageRoute(
                                 builder: (context) =>
-                                    CreateAccountPage(role: "jobseeker"),
+                                    const CreateAccountPage(role: 'jobseeker'),
                               ),
                             );
                           } else if (selectedRole == "employer") {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => EmployerRegisterPage(),
+                                builder: (context) =>
+                                    const EmployerRegisterPage(),
                               ),
                             );
                           }
@@ -102,7 +103,7 @@ class _RegisterPageState extends State<RegisterPage> {
                     ),
                   ),
                   child: const Text(
-                    "Selected",
+                    "Select",
                     style: TextStyle(fontSize: 16, color: Colors.black),
                   ),
                 ),
@@ -128,16 +129,16 @@ class _RegisterPageState extends State<RegisterPage> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 18),
         decoration: BoxDecoration(
-          color: Colors.grey.shade200,
+          color: isSelected ? Colors.blue.shade100 : Colors.grey.shade300,
           borderRadius: BorderRadius.circular(10),
           border: Border.all(
-            color: isSelected ? Colors.black : Colors.transparent,
+            color: isSelected ? Colors.blue : Colors.transparent,
             width: 2,
           ),
         ),
         child: Row(
           children: [
-            Icon(Icons.diamond, size: 14),
+            Icon(icon, size: 28),
             const SizedBox(width: 15),
             Expanded(
               child: Text(
@@ -148,7 +149,7 @@ class _RegisterPageState extends State<RegisterPage> {
                 ),
               ),
             ),
-            Icon(icon, size: 28),
+            if (isSelected) const Icon(Icons.check_circle, color: Colors.blue),
           ],
         ),
       ),

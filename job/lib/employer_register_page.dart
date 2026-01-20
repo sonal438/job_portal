@@ -1,9 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:job/login_screen.dart';
 import 'package:job/employer_create_profile_page.dart';
+import 'package:job/services/auth_service.dart';
 
-class EmployerRegisterPage extends StatelessWidget {
+class EmployerRegisterPage extends StatefulWidget {
   const EmployerRegisterPage({super.key});
+
+  @override
+  State<EmployerRegisterPage> createState() => _EmployerRegisterPageState();
+}
+
+class _EmployerRegisterPageState extends State<EmployerRegisterPage> {
+  // 🔹 Controllers
+  final TextEditingController emailController = TextEditingController();
+  final TextEditingController passwordController = TextEditingController();
+  final TextEditingController confirmPasswordController =
+      TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -26,7 +38,6 @@ class EmployerRegisterPage extends StatelessWidget {
 
             const SizedBox(height: 40),
 
-            // TITLE
             const Text(
               "Create Account",
               style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
@@ -35,30 +46,44 @@ class EmployerRegisterPage extends StatelessWidget {
             const SizedBox(height: 30),
 
             // EMAIL
-            inputField("Email", false),
+            inputField("Email", false, emailController),
 
             const SizedBox(height: 15),
 
             // PASSWORD
-            inputField("Password", true),
+            inputField("Password", true, passwordController),
 
             const SizedBox(height: 15),
 
             // CONFIRM PASSWORD
-            inputField("Confirm Password", true),
+            inputField("Confirm Password", true, confirmPasswordController),
 
             const SizedBox(height: 30),
 
-            // REGISTER BUTTON ✅ FIXED
+            // REGISTER BUTTON ✅ FIREBASE CONNECTED
             SizedBox(
               width: 180,
               height: 45,
               child: ElevatedButton(
-                onPressed: () {
-                  Navigator.push(
+                onPressed: () async {
+                  if (passwordController.text !=
+                      confirmPasswordController.text) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text("Passwords do not match")),
+                    );
+                    return;
+                  }
+
+                  await AuthService().register(
+                    email: emailController.text.trim(),
+                    password: passwordController.text.trim(),
+                    role: "employer",
+                  );
+
+                  Navigator.pushReplacement(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => const EmployerCreateProfilePage(),
+                      builder: (_) => const EmployerCreateProfilePage(),
                     ),
                   );
                 },
@@ -86,9 +111,7 @@ class EmployerRegisterPage extends StatelessWidget {
                   onTap: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(
-                        builder: (context) => const LoginScreen(),
-                      ),
+                      MaterialPageRoute(builder: (_) => const LoginScreen()),
                     );
                   },
                   child: const Text(
@@ -108,11 +131,16 @@ class EmployerRegisterPage extends StatelessWidget {
     );
   }
 
-  // INPUT FIELD
-  static Widget inputField(String hint, bool isPassword) {
+  // INPUT FIELD WIDGET
+  Widget inputField(
+    String hint,
+    bool isPassword,
+    TextEditingController controller,
+  ) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 30),
       child: TextField(
+        controller: controller,
         obscureText: isPassword,
         decoration: InputDecoration(
           hintText: hint,

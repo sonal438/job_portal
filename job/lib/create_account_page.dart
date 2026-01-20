@@ -1,8 +1,29 @@
 import 'package:flutter/material.dart';
 import 'create_profile_page.dart';
+import '../services/auth_service.dart'; // <-- Import AuthService
 
-class CreateAccountPage extends StatelessWidget {
-  const CreateAccountPage({super.key, required String role});
+class CreateAccountPage extends StatefulWidget {
+  const CreateAccountPage({super.key, required this.role});
+
+  final String role;
+
+  @override
+  State<CreateAccountPage> createState() => _CreateAccountPageState();
+}
+
+class _CreateAccountPageState extends State<CreateAccountPage> {
+  // ✅ Controllers
+  final TextEditingController emailController = TextEditingController();
+  final TextEditingController passwordController = TextEditingController();
+  final TextEditingController confirmController = TextEditingController();
+
+  @override
+  void dispose() {
+    emailController.dispose();
+    passwordController.dispose();
+    confirmController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -15,11 +36,13 @@ class CreateAccountPage extends StatelessWidget {
               width: double.infinity,
               padding: const EdgeInsets.symmetric(vertical: 14),
               color: const Color(0xFFB7CFEA),
-
-              child: const Center(
+              child: Center(
                 child: Text(
-                  "Jobseeker",
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                  widget.role == "employer" ? "Employer" : "Jobseeker",
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
             ),
@@ -35,17 +58,17 @@ class CreateAccountPage extends StatelessWidget {
             const SizedBox(height: 30),
 
             // EMAIL FIELD
-            inputField(hint: "Email"),
+            inputField(hint: "Email", controller: emailController),
 
             const SizedBox(height: 15),
 
             // PASSWORD FIELD
-            inputField(hint: "Password"),
+            inputField(hint: "Password", controller: passwordController),
 
             const SizedBox(height: 15),
 
             // CONFIRM PASSWORD FIELD
-            inputField(hint: "Confirm Password"),
+            inputField(hint: "Confirm Password", controller: confirmController),
 
             const SizedBox(height: 30),
 
@@ -54,7 +77,23 @@ class CreateAccountPage extends StatelessWidget {
               width: 180,
               height: 45,
               child: ElevatedButton(
-                onPressed: () {
+                onPressed: () async {
+                  // ✅ Validation
+                  if (passwordController.text != confirmController.text) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text("Passwords do not match")),
+                    );
+                    return;
+                  }
+
+                  // ✅ Backend Register
+                  await AuthService().register(
+                    email: emailController.text,
+                    password: passwordController.text,
+                    role: "jobseeker", // IMPORTANT
+                  );
+
+                  // ✅ Redirect
                   Navigator.push(
                     context,
                     MaterialPageRoute(
@@ -81,10 +120,14 @@ class CreateAccountPage extends StatelessWidget {
   }
 
   // INPUT FIELD WIDGET
-  Widget inputField({required String hint}) {
+  Widget inputField({
+    required String hint,
+    required TextEditingController controller,
+  }) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 30),
       child: TextField(
+        controller: controller,
         obscureText: hint.contains("Password"),
         decoration: InputDecoration(
           hintText: hint,
