@@ -1,34 +1,21 @@
 import 'package:flutter/material.dart';
-// ignore: unused_import
-import '../../services/jobseeker_service.dart'; // <-- Import
-import 'screen/job seeker/jobseeker_dashboard_page.dart'; // <-- Import
+import 'package:job/screen/employer_dashboard_page.dart';
+import 'package:job/services/user_service.dart';
 
-class CreateProfilePage extends StatefulWidget {
-  const CreateProfilePage({super.key});
+class EmployerCreateProfilePage extends StatefulWidget {
+  const EmployerCreateProfilePage({super.key});
 
   @override
-  State<CreateProfilePage> createState() => _CreateProfilePageState();
+  State<EmployerCreateProfilePage> createState() =>
+      _EmployerCreateProfilePageState();
 }
 
-class _CreateProfilePageState extends State<CreateProfilePage> {
-  // ✅ Controllers
+class _EmployerCreateProfilePageState extends State<EmployerCreateProfilePage> {
+  // 🔹 Controllers
   final TextEditingController nameController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController phoneController = TextEditingController();
   final TextEditingController addressController = TextEditingController();
-  final TextEditingController skillsController = TextEditingController();
-  final TextEditingController educationController = TextEditingController();
-
-  @override
-  void dispose() {
-    nameController.dispose();
-    emailController.dispose();
-    phoneController.dispose();
-    addressController.dispose();
-    skillsController.dispose();
-    educationController.dispose();
-    super.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -36,10 +23,7 @@ class _CreateProfilePageState extends State<CreateProfilePage> {
       appBar: AppBar(
         backgroundColor: const Color(0xFFB7CFEA),
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
+        leading: const Icon(Icons.arrow_back, color: Colors.black),
         title: const Text(
           "Create Profile",
           style: TextStyle(color: Colors.black),
@@ -78,37 +62,33 @@ class _CreateProfilePageState extends State<CreateProfilePage> {
 
             const SizedBox(height: 8),
             const Text("Upload Photo", style: TextStyle(fontSize: 14)),
+
             const SizedBox(height: 25),
 
-            // INPUT FIELDS WITH CONTROLLERS
             inputField("Full Name", nameController),
             inputField("Email", emailController),
             inputField("Phone number", phoneController),
             inputField("Address", addressController),
-            inputField("Skills", skillsController),
-            inputField("Education", educationController),
 
-            const SizedBox(height: 25),
+            const SizedBox(height: 30),
 
-            // SAVE PROFILE BUTTON
+            // ✅ SAVE PROFILE BUTTON (FIREBASE CONNECTED)
             SizedBox(
-              width: 220,
+              width: 240,
               height: 45,
               child: ElevatedButton(
                 onPressed: () async {
-                  // ✅ Backend Save
-                  await JobSeekerService().saveJobSeekerProfile(
-                    name: nameController.text,
-                    email: emailController.text,
-                    phone: phoneController.text,
-                    skills: skillsController.text,
+                  await UserService().saveEmployerProfile(
+                    name: nameController.text.trim(),
+                    email: emailController.text.trim(),
+                    phone: phoneController.text.trim(),
+                    address: addressController.text.trim(),
                   );
 
-                  // ✅ Redirect
                   Navigator.pushReplacement(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => const JobseekerDashboard(),
+                      builder: (_) => const EmployerDashboardPage(),
                     ),
                   );
                 },
@@ -154,13 +134,4 @@ class _CreateProfilePageState extends State<CreateProfilePage> {
       ),
     );
   }
-}
-
-class JobSeekerService {
-  Future<void> saveJobSeekerProfile({
-    required String name,
-    required String email,
-    required String phone,
-    required String skills,
-  }) async {}
 }

@@ -3,33 +3,31 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  final FirebaseFirestore _db = FirebaseFirestore.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  // REGISTER
   Future<void> register({
+    required String name,
     required String email,
     required String password,
     required String role,
   }) async {
-    UserCredential user = await _auth.createUserWithEmailAndPassword(
+    UserCredential cred = await _auth.createUserWithEmailAndPassword(
       email: email,
       password: password,
     );
 
-    await _db.collection("users").doc(user.user!.uid).set({
-      "email": email,
-      "role": role,
-      "profileCompleted": false,
-      "createdAt": Timestamp.now(),
+    await _firestore.collection('users').doc(cred.user!.uid).set({
+      'name': name,
+      'email': email,
+      'role': role,
     });
   }
 
-  // LOGIN
-  Future<User?> login(String email, String password) async {
-    UserCredential user = await _auth.signInWithEmailAndPassword(
-      email: email,
-      password: password,
-    );
-    return user.user;
+  Future<void> login(String email, String password) async {
+    await _auth.signInWithEmailAndPassword(email: email, password: password);
+  }
+
+  Future<void> logout() async {
+    await _auth.signOut();
   }
 }

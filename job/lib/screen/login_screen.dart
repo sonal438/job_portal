@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
-import 'category_list_screen.dart';
+import 'job seeker/category_list_screen.dart';
 import 'employer_dashboard_page.dart';
 import 'register_page.dart';
 import 'employer_create_profile_page.dart';
@@ -15,7 +15,6 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  // 🔹 Controllers
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
 
@@ -39,17 +38,14 @@ class _LoginScreenState extends State<LoginScreen> {
 
               const SizedBox(height: 50),
 
-              // EMAIL
               _inputField("Email", false, emailController),
 
               const SizedBox(height: 20),
 
-              // PASSWORD
               _inputField("Password", true, passwordController),
 
               const SizedBox(height: 25),
 
-              // LOGIN BUTTON
               GestureDetector(
                 onTap: isLoading ? null : _loginUser,
                 child: Container(
@@ -76,7 +72,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
               const SizedBox(height: 25),
 
-              // REGISTER
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -105,7 +100,6 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  // 🔹 LOGIN LOGIC (ROLE BASED)
   Future<void> _loginUser() async {
     setState(() => isLoading = true);
 
@@ -124,11 +118,15 @@ class _LoginScreenState extends State<LoginScreen> {
           .doc(uid)
           .get();
 
-      final role = userDoc["role"];
-      final profileCompleted = userDoc["profileCompleted"];
+      if (!userDoc.exists) {
+        throw Exception("User data not found in Firestore.");
+      }
+
+      final role = userDoc.data()?["role"] ?? "jobseeker";
+      final profileCompleted = userDoc.data()?["profileCompleted"] ?? true;
 
       // 3️⃣ Navigation logic
-      if (!profileCompleted) {
+      if (!profileCompleted && role == "employer") {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (_) => const EmployerCreateProfilePage()),
@@ -147,13 +145,12 @@ class _LoginScreenState extends State<LoginScreen> {
     } catch (e) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text(e.toString())));
+      ).showSnackBar(SnackBar(content: Text("Login failed: ${e.toString()}")));
     }
 
     setState(() => isLoading = false);
   }
 
-  // 🔹 INPUT FIELD
   Widget _inputField(
     String hint,
     bool isPassword,

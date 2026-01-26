@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:job/register_page.dart';
+import 'package:job/screen/register_page.dart';
 import 'login_screen.dart';
 
 class WelcomePage extends StatelessWidget {

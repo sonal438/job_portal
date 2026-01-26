@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'post_job_screen.dart';
+import 'job seeker/post_job_screen.dart';
 import 'chat_page.dart'; // <-- Import your chat screen
 
 class EmployerDashboardPage extends StatelessWidget {

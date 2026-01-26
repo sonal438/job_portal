@@ -18,6 +18,13 @@ class _PostJobScreenState extends State<PostJobScreen> {
   final TextEditingController descriptionController = TextEditingController();
 
   String? category;
+  bool isLoading = false;
+  static const List<String> categories = [
+    'Education',
+    'Health',
+    'IT',
+    'Business',
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -71,22 +78,22 @@ class _PostJobScreenState extends State<PostJobScreen> {
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),
-                onPressed: () async {
-                  await JobService().postJob(
-                    title: titleController.text.trim(),
-                    category: category ?? '',
-                    location: locationController.text.trim(),
-                    employmentType: employmentTypeController.text.trim(),
-                    salary: salaryController.text.trim(),
-                    description: descriptionController.text.trim(),
-                  );
-
-                  Navigator.pop(context);
-                },
-                child: const Text(
-                  'Post Job',
-                  style: TextStyle(fontSize: 16, color: Colors.white),
-                ),
+                onPressed: isLoading ? null : () => _postJob(),
+                child: isLoading
+                    ? const SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            Colors.white,
+                          ),
+                        ),
+                      )
+                    : const Text(
+                        'Post Job',
+                        style: TextStyle(fontSize: 16, color: Colors.white),
+                      ),
               ),
             ),
           ],
@@ -154,18 +161,105 @@ class _PostJobScreenState extends State<PostJobScreen> {
         child: DropdownButton<String>(
           value: category,
           hint: const Text('Select category'),
-          items: const [
-            DropdownMenuItem(value: 'Education', child: Text('Education')),
-            DropdownMenuItem(value: 'Health', child: Text('Health')),
-            DropdownMenuItem(value: 'IT', child: Text('IT')),
-            DropdownMenuItem(value: 'Business', child: Text('Business')),
-          ],
+          items: categories
+              .map((cat) => DropdownMenuItem(value: cat, child: Text(cat)))
+              .toList(),
           onChanged: (value) {
             setState(() {
               category = value;
             });
           },
+          isExpanded: true,
         ),
+      ),
+    );
+  }
+
+  Future<void> _postJob() async {
+    if (titleController.text.trim().isEmpty) {
+      _showErrorToast('Please enter job title');
+      return;
+    }
+    if (category == null) {
+      _showErrorToast('Please select a category');
+      return;
+    }
+    if (locationController.text.trim().isEmpty) {
+      _showErrorToast('Please enter location');
+      return;
+    }
+    if (employmentTypeController.text.trim().isEmpty) {
+      _showErrorToast('Please enter employment type');
+      return;
+    }
+    if (salaryController.text.trim().isEmpty) {
+      _showErrorToast('Please enter salary');
+      return;
+    }
+    if (descriptionController.text.trim().isEmpty) {
+      _showErrorToast('Please enter job description');
+      return;
+    }
+
+    setState(() {
+      isLoading = true;
+    });
+
+    try {
+      await JobService().postJob(
+        title: titleController.text.trim(),
+        category: category ?? '',
+        location: locationController.text.trim(),
+        employmentType: employmentTypeController.text.trim(),
+        salary: salaryController.text.trim(),
+        description: descriptionController.text.trim(),
+      );
+
+      _showSuccessToast('Job posted successfully!');
+      Future.delayed(const Duration(milliseconds: 500), () {
+        Navigator.pop(context);
+      });
+    } catch (e) {
+      _showErrorToast('Failed to post job: ${e.toString()}');
+    } finally {
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
+
+  void _showSuccessToast(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            const Icon(Icons.check_circle, color: Colors.white),
+            const SizedBox(width: 12),
+            Expanded(child: Text(message)),
+          ],
+        ),
+        backgroundColor: Colors.green,
+        duration: const Duration(seconds: 3),
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.all(16),
+      ),
+    );
+  }
+
+  void _showErrorToast(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            const Icon(Icons.error, color: Colors.white),
+            const SizedBox(width: 12),
+            Expanded(child: Text(message)),
+          ],
+        ),
+        backgroundColor: Colors.red,
+        duration: const Duration(seconds: 3),
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.all(16),
       ),
     );
   }

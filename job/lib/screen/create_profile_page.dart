@@ -1,21 +1,35 @@
 import 'package:flutter/material.dart';
-import 'package:job/employer_dashboard_page.dart';
-import 'package:job/services/user_service.dart';
+import 'package:job/create_profile_page.dart';
+// ignore: unused_import
+import '../../services/jobseeker_service.dart'; // <-- Import
+import 'job seeker/jobseeker_dashboard_page.dart'; // <-- Import
 
-class EmployerCreateProfilePage extends StatefulWidget {
-  const EmployerCreateProfilePage({super.key});
+class CreateProfilePage extends StatefulWidget {
+  const CreateProfilePage({super.key});
 
   @override
-  State<EmployerCreateProfilePage> createState() =>
-      _EmployerCreateProfilePageState();
+  State<CreateProfilePage> createState() => _CreateProfilePageState();
 }
 
-class _EmployerCreateProfilePageState extends State<EmployerCreateProfilePage> {
-  // 🔹 Controllers
+class _CreateProfilePageState extends State<CreateProfilePage> {
+  // ✅ Controllers
   final TextEditingController nameController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController phoneController = TextEditingController();
   final TextEditingController addressController = TextEditingController();
+  final TextEditingController skillsController = TextEditingController();
+  final TextEditingController educationController = TextEditingController();
+
+  @override
+  void dispose() {
+    nameController.dispose();
+    emailController.dispose();
+    phoneController.dispose();
+    addressController.dispose();
+    skillsController.dispose();
+    educationController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -23,7 +37,10 @@ class _EmployerCreateProfilePageState extends State<EmployerCreateProfilePage> {
       appBar: AppBar(
         backgroundColor: const Color(0xFFB7CFEA),
         elevation: 0,
-        leading: const Icon(Icons.arrow_back, color: Colors.black),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
         title: const Text(
           "Create Profile",
           style: TextStyle(color: Colors.black),
@@ -62,33 +79,37 @@ class _EmployerCreateProfilePageState extends State<EmployerCreateProfilePage> {
 
             const SizedBox(height: 8),
             const Text("Upload Photo", style: TextStyle(fontSize: 14)),
-
             const SizedBox(height: 25),
 
+            // INPUT FIELDS WITH CONTROLLERS
             inputField("Full Name", nameController),
             inputField("Email", emailController),
             inputField("Phone number", phoneController),
             inputField("Address", addressController),
+            inputField("Skills", skillsController),
+            inputField("Education", educationController),
 
-            const SizedBox(height: 30),
+            const SizedBox(height: 25),
 
-            // ✅ SAVE PROFILE BUTTON (FIREBASE CONNECTED)
+            // SAVE PROFILE BUTTON
             SizedBox(
-              width: 240,
+              width: 220,
               height: 45,
               child: ElevatedButton(
                 onPressed: () async {
-                  await UserService().saveEmployerProfile(
-                    name: nameController.text.trim(),
-                    email: emailController.text.trim(),
-                    phone: phoneController.text.trim(),
-                    address: addressController.text.trim(),
+                  // ✅ Backend Save
+                  await JobSeekerService().saveJobSeekerProfile(
+                    name: nameController.text,
+                    email: emailController.text,
+                    phone: phoneController.text,
+                    skills: skillsController.text,
                   );
 
+                  // ✅ Redirect
                   Navigator.pushReplacement(
                     context,
                     MaterialPageRoute(
-                      builder: (_) => const EmployerDashboardPage(),
+                      builder: (context) => const JobseekerDashboard(),
                     ),
                   );
                 },

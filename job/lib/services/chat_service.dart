@@ -1,24 +1,30 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import '../models/chat_model.dart';
 
 class ChatService {
-  final _db = FirebaseFirestore.instance;
-  final uid = FirebaseAuth.instance.currentUser!.uid;
+  final _chats = FirebaseFirestore.instance.collection('chats');
 
-  Stream<QuerySnapshot> getMessages(String chatId) {
-    return _db
-        .collection("messages")
-        .doc(chatId)
-        .collection("chat")
-        .orderBy("timestamp")
-        .snapshots();
+  Future<void> sendMessage(ChatMessage msg) async {
+    await _chats
+        .doc(_chatId(msg.senderId, msg.receiverId))
+        .collection('messages')
+        .add(msg.toMap());
   }
 
-  Future<void> sendMessage(String chatId, String text) async {
-    await _db.collection("messages").doc(chatId).collection("chat").add({
-      "senderId": uid,
-      "text": text,
-      "timestamp": Timestamp.now(),
-    });
+  Stream<List<ChatMessage>> getMessages(String user1, String user2) {
+    return _chats
+        .doc(_chatId(user1, user2))
+        .collection('messages')
+        .orderBy('timestamp')
+        .snapshots()
+        .map(
+          (snapshot) => snapshot.docs
+              .map((doc) => ChatMessage.fromMap(doc.data(), doc.id))
+              .toList(),
+        );
+  }
+
+  String _chatId(String a, String b) {
+    return a.hashCode <= b.hashCode ? '$a-$b' : '$b-$a';
   }
 }

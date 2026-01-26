@@ -14,10 +14,12 @@ class JobListPage extends StatelessWidget {
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: StreamBuilder<QuerySnapshot>(
-          stream: FirebaseFirestore.instance
-              .collection("jobs")
-              .where("category", isEqualTo: category)
-              .snapshots(),
+          stream: category == "All"
+              ? FirebaseFirestore.instance.collection("jobs").snapshots()
+              : FirebaseFirestore.instance
+                    .collection("jobs")
+                    .where("category", isEqualTo: category)
+                    .snapshots(),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return const Center(child: CircularProgressIndicator());

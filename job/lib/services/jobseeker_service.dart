@@ -1,24 +1,28 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import '../models/application_model.dart';
 
-class JobSeekerService {
-  final _db = FirebaseFirestore.instance;
-  final uid = FirebaseAuth.instance.currentUser!.uid;
+class JobseekerService {
+  final _applications = FirebaseFirestore.instance.collection('applications');
 
-  Future<void> saveJobSeekerProfile({
-    required String name,
-    required String email,
-    required String phone,
-    required String skills,
+  Future<void> applyForJob({
+    required String jobId,
+    required String jobseekerId,
   }) async {
-    await _db.collection("jobseeker_profiles").doc(uid).set({
-      "name": name,
-      "email": email,
-      "phone": phone,
-      "skills": skills,
-      "createdAt": Timestamp.now(),
+    await _applications.add({
+      'jobId': jobId,
+      'jobseekerId': jobseekerId,
+      'status': 'applied',
     });
+  }
 
-    await _db.collection("users").doc(uid).update({"profileCompleted": true});
+  Stream<List<ApplicationModel>> myApplications(String userId) {
+    return _applications
+        .where('jobseekerId', isEqualTo: userId)
+        .snapshots()
+        .map(
+          (snap) => snap.docs
+              .map((doc) => ApplicationModel.fromMap(doc.data(), doc.id))
+              .toList(),
+        );
   }
 }

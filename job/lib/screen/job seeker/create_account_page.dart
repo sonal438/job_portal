@@ -1,21 +1,29 @@
 import 'package:flutter/material.dart';
-import 'package:job/login_screen.dart';
-import 'package:job/employer_create_profile_page.dart';
-import 'package:job/services/auth_service.dart';
+import '../create_profile_page.dart';
+import '../../../services/auth_service.dart'; // <-- Import AuthService
 
-class EmployerRegisterPage extends StatefulWidget {
-  const EmployerRegisterPage({super.key});
+class CreateAccountPage extends StatefulWidget {
+  const CreateAccountPage({super.key, required this.role});
+
+  final String role;
 
   @override
-  State<EmployerRegisterPage> createState() => _EmployerRegisterPageState();
+  State<CreateAccountPage> createState() => _CreateAccountPageState();
 }
 
-class _EmployerRegisterPageState extends State<EmployerRegisterPage> {
-  // 🔹 Controllers
+class _CreateAccountPageState extends State<CreateAccountPage> {
+  // ✅ Controllers
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
-  final TextEditingController confirmPasswordController =
-      TextEditingController();
+  final TextEditingController confirmController = TextEditingController();
+
+  @override
+  void dispose() {
+    emailController.dispose();
+    passwordController.dispose();
+    confirmController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -28,16 +36,20 @@ class _EmployerRegisterPageState extends State<EmployerRegisterPage> {
               width: double.infinity,
               padding: const EdgeInsets.symmetric(vertical: 14),
               color: const Color(0xFFB7CFEA),
-              child: const Center(
+              child: Center(
                 child: Text(
-                  "Employer",
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                  widget.role == "employer" ? "Employer" : "Jobseeker",
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
             ),
 
             const SizedBox(height: 40),
 
+            // CREATE ACCOUNT TITLE
             const Text(
               "Create Account",
               style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
@@ -45,45 +57,48 @@ class _EmployerRegisterPageState extends State<EmployerRegisterPage> {
 
             const SizedBox(height: 30),
 
-            // EMAIL
-            inputField("Email", false, emailController),
+            // EMAIL FIELD
+            inputField(hint: "Email", controller: emailController),
 
             const SizedBox(height: 15),
 
-            // PASSWORD
-            inputField("Password", true, passwordController),
+            // PASSWORD FIELD
+            inputField(hint: "Password", controller: passwordController),
 
             const SizedBox(height: 15),
 
-            // CONFIRM PASSWORD
-            inputField("Confirm Password", true, confirmPasswordController),
+            // CONFIRM PASSWORD FIELD
+            inputField(hint: "Confirm Password", controller: confirmController),
 
             const SizedBox(height: 30),
 
-            // REGISTER BUTTON ✅ FIREBASE CONNECTED
+            // REGISTER BUTTON
             SizedBox(
               width: 180,
               height: 45,
               child: ElevatedButton(
                 onPressed: () async {
-                  if (passwordController.text !=
-                      confirmPasswordController.text) {
+                  // ✅ Validation
+                  if (passwordController.text != confirmController.text) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(content: Text("Passwords do not match")),
                     );
                     return;
                   }
 
+                  // ✅ Backend Register
                   await AuthService().register(
-                    email: emailController.text.trim(),
-                    password: passwordController.text.trim(),
-                    role: "employer",
+                    email: emailController.text,
+                    password: passwordController.text,
+                    role: "jobseeker",
+                    name: '', // IMPORTANT
                   );
 
-                  Navigator.pushReplacement(
+                  // ✅ Redirect
+                  Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (_) => const EmployerCreateProfilePage(),
+                      builder: (context) => const CreateProfilePage(),
                     ),
                   );
                 },
@@ -95,35 +110,9 @@ class _EmployerRegisterPageState extends State<EmployerRegisterPage> {
                 ),
                 child: const Text(
                   "Register",
-                  style: TextStyle(fontSize: 16, color: Colors.black),
+                  style: TextStyle(color: Colors.black, fontSize: 16),
                 ),
               ),
-            ),
-
-            const SizedBox(height: 15),
-
-            // LOGIN TEXT
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Text("Already have an account? "),
-                GestureDetector(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => const LoginScreen()),
-                    );
-                  },
-                  child: const Text(
-                    "Login",
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.blue,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ],
             ),
           ],
         ),
@@ -132,16 +121,15 @@ class _EmployerRegisterPageState extends State<EmployerRegisterPage> {
   }
 
   // INPUT FIELD WIDGET
-  Widget inputField(
-    String hint,
-    bool isPassword,
-    TextEditingController controller,
-  ) {
+  Widget inputField({
+    required String hint,
+    required TextEditingController controller,
+  }) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 30),
       child: TextField(
         controller: controller,
-        obscureText: isPassword,
+        obscureText: hint.contains("Password"),
         decoration: InputDecoration(
           hintText: hint,
           filled: true,

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../services/application_service.dart'; // <-- Import
+import '../../../services/application_service.dart'; // <-- Import
 
 class JobDetailPage extends StatelessWidget {
   final String jobId;

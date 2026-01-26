@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'screen/job seeker/create_account_page.dart';
-import 'screen/employer_register_page.dart';
+import 'job seeker/create_account_page.dart';
+import 'employer_register_page.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});

@@ -1,24 +1,19 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import '../models/user_model.dart';
 
 class UserService {
-  final _db = FirebaseFirestore.instance;
-  final uid = FirebaseAuth.instance.currentUser!.uid;
+  final _users = FirebaseFirestore.instance.collection('users');
 
-  // Employer Profile
+  Future<UserModel?> getUserById(String uid) async {
+    final doc = await _users.doc(uid).get();
+    if (!doc.exists) return null;
+    return UserModel.fromMap(doc.data()!, doc.id);
+  }
+
   Future<void> saveEmployerProfile({
     required String name,
     required String email,
     required String phone,
     required String address,
-  }) async {
-    await _db.collection("employer_profiles").doc(uid).set({
-      "name": name,
-      "email": email,
-      "phone": phone,
-      "address": address,
-    });
-
-    await _db.collection("users").doc(uid).update({"profileCompleted": true});
-  }
+  }) async {}
 }
