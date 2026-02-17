@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../services/application_service.dart'; // <-- Import
 
-class JobDetailPage extends StatelessWidget {
+class JobDetailPage extends StatefulWidget {
   final String jobId;
   final String jobTitle;
   final String location;
@@ -20,6 +20,11 @@ class JobDetailPage extends StatelessWidget {
   });
 
   @override
+  State<JobDetailPage> createState() => _JobDetailPageState();
+}
+
+class _JobDetailPageState extends State<JobDetailPage> {
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Job Details'), centerTitle: true),
@@ -29,21 +34,21 @@ class JobDetailPage extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              jobTitle,
+              widget.jobTitle,
               style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
             ),
 
             const SizedBox(height: 8),
 
             Text(
-              '$location • $jobType',
+              '${widget.location} • ${widget.jobType}',
               style: const TextStyle(color: Colors.grey),
             ),
 
             const SizedBox(height: 8),
 
             Text(
-              'Salary: $salary',
+              'Salary: ${widget.salary}',
               style: const TextStyle(fontWeight: FontWeight.w600),
             ),
 
@@ -56,7 +61,7 @@ class JobDetailPage extends StatelessWidget {
 
             const SizedBox(height: 8),
 
-            Text(description),
+            Text(widget.description),
 
             const Spacer(),
 
@@ -65,11 +70,30 @@ class JobDetailPage extends StatelessWidget {
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: () async {
-                  await ApplicationService().applyJob(jobId: jobId);
+                  try {
+                    await ApplicationService().applyJob(jobId: widget.jobId);
 
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text("Applied Successfully")),
-                  );
+                    if (mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text("Applied Successfully"),
+                          backgroundColor: Colors.green,
+                        ),
+                      );
+                      Navigator.pop(context);
+                    }
+                  } catch (e) {
+                    if (mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            e.toString().replaceAll('Exception: ', ''),
+                          ),
+                          backgroundColor: Colors.red,
+                        ),
+                      );
+                    }
+                  }
                 },
                 child: const Text('Apply Job'),
               ),

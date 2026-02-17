@@ -5,7 +5,7 @@ import '../../services/jobseeker_service.dart'; // <-- Import
 import 'job seeker/jobseeker_dashboard_page.dart'; // <-- Import
 
 class CreateProfilePage extends StatefulWidget {
-  const CreateProfilePage({super.key});
+  const CreateProfilePage({super.key, required String userId});
 
   @override
   State<CreateProfilePage> createState() => _CreateProfilePageState();
@@ -98,7 +98,7 @@ class _CreateProfilePageState extends State<CreateProfilePage> {
               child: ElevatedButton(
                 onPressed: () async {
                   // ✅ Backend Save
-                  await JobSeekerService().saveJobSeekerProfile(
+                  await JobseekerService().saveJobSeekerProfile(
                     name: nameController.text,
                     email: emailController.text,
                     phone: phoneController.text,

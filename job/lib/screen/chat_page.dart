@@ -1,138 +1,114 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:job/services/chat_service.dart';
 
-class ChatTabScreen extends StatefulWidget {
-  const ChatTabScreen({super.key});
+class ChatScreen extends StatefulWidget {
+  final String senderId;
+  final String receiverId;
+
+  const ChatScreen({
+    super.key,
+    required this.senderId,
+    required this.receiverId,
+    required String receiverName,
+  });
 
   @override
-  State<ChatTabScreen> createState() => _ChatTabScreenState();
+  State<ChatScreen> createState() => _ChatScreenState();
 }
 
-class _ChatTabScreenState extends State<ChatTabScreen>
-    with SingleTickerProviderStateMixin {
-  late TabController _tabController;
-  String selectedUser = "Select a chat";
-
-  final List<Map<String, String>> chatUsers = [
-    {"name": "Alina Sharma", "last": "Teacher job"},
-    {"name": "Rahul Khatri", "last": "Interview"},
-    {"name": "Sunita Shrestha", "last": "Job inquiry"},
-  ];
-
-  final TextEditingController _messageController = TextEditingController();
-  final List<String> messages = [];
-
-  @override
-  void initState() {
-    super.initState();
-    _tabController = TabController(length: 2, vsync: this);
-  }
-
-  void openChat(String name) {
-    setState(() {
-      selectedUser = name;
-    });
-    _tabController.animateTo(1); // Switch to Messages tab
-  }
+class _ChatScreenState extends State<ChatScreen> {
+  final TextEditingController messageController = TextEditingController();
+  final ChatService chatService = ChatService();
 
   void sendMessage() {
-    if (_messageController.text.isNotEmpty) {
-      setState(() {
-        messages.add(_messageController.text);
-      });
-      _messageController.clear();
+    if (messageController.text.trim().isNotEmpty) {
+      chatService.sendMessage(
+        senderId: widget.senderId,
+        receiverId: widget.receiverId,
+        message: messageController.text.trim(),
+      );
+      messageController.clear();
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Chat"),
-        backgroundColor: const Color(0xFFB7CFEA),
-        bottom: TabBar(
-          controller: _tabController,
-          tabs: const [
-            Tab(text: "Chats"),
-            Tab(text: "Messages"),
-          ],
-        ),
-      ),
-      body: TabBarView(
-        controller: _tabController,
+      appBar: AppBar(title: const Text("Live Chat")),
+      body: Column(
         children: [
-          // ---------------- CHAT LIST TAB ----------------
-          ListView.builder(
-            itemCount: chatUsers.length,
-            itemBuilder: (context, index) {
-              return ListTile(
-                leading: const CircleAvatar(
-                  backgroundColor: Color(0xFFB7CFEA),
-                  child: Icon(Icons.person, color: Colors.white),
-                ),
-                title: Text(chatUsers[index]["name"]!),
-                subtitle: Text(chatUsers[index]["last"]!),
-                trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-                onTap: () => openChat(chatUsers[index]["name"]!),
-              );
-            },
-          ),
-
-          // ---------------- CHAT SCREEN TAB ----------------
-          Column(
-            children: [
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(12),
-                color: Colors.grey.shade200,
-                child: Text(
-                  selectedUser,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
+          Expanded(
+            child: StreamBuilder<QuerySnapshot>(
+              stream: chatService.getMessages(
+                widget.senderId,
+                widget.receiverId,
               ),
-              Expanded(
-                child: ListView.builder(
+              builder: (context, snapshot) {
+                if (!snapshot.hasData) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+
+                final messages = snapshot.data!.docs;
+
+                return ListView.builder(
                   itemCount: messages.length,
                   itemBuilder: (context, index) {
+                    final data = messages[index].data() as Map<String, dynamic>;
+
+                    final isMe = data['senderId'] == widget.senderId;
+
                     return Align(
-                      alignment: Alignment.centerRight,
+                      alignment: isMe
+                          ? Alignment.centerRight
+                          : Alignment.centerLeft,
                       child: Container(
-                        margin: const EdgeInsets.all(8),
+                        margin: const EdgeInsets.symmetric(
+                          vertical: 5,
+                          horizontal: 10,
+                        ),
                         padding: const EdgeInsets.all(10),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFB7CFEA),
+                          color: isMe
+                              ? Colors.blueAccent
+                              : Colors.grey.shade300,
                           borderRadius: BorderRadius.circular(12),
                         ),
-                        child: Text(messages[index]),
+                        child: Text(
+                          data['message'] ?? '',
+                          style: TextStyle(
+                            color: isMe ? Colors.white : Colors.black,
+                          ),
+                        ),
                       ),
                     );
                   },
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(8),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: TextField(
-                        controller: _messageController,
-                        decoration: const InputDecoration(
-                          hintText: "Type message...",
-                          border: OutlineInputBorder(),
-                        ),
-                      ),
+                );
+              },
+            ),
+          ),
+
+          /// Message input box
+          Padding(
+            padding: const EdgeInsets.all(10),
+            child: Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: messageController,
+                    decoration: const InputDecoration(
+                      hintText: "Type message...",
+                      border: OutlineInputBorder(),
                     ),
-                    const SizedBox(width: 8),
-                    IconButton(
-                      icon: const Icon(Icons.send, color: Color(0xFFB7CFEA)),
-                      onPressed: sendMessage,
-                    ),
-                  ],
+                  ),
                 ),
-              ),
-            ],
+                const SizedBox(width: 8),
+                IconButton(
+                  icon: const Icon(Icons.send),
+                  onPressed: sendMessage,
+                ),
+              ],
+            ),
           ),
         ],
       ),

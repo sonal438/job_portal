@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'job_list_page.dart';
+import 'jobseeker_dashboard_page.dart';
 
 class CategoryListScreen extends StatelessWidget {
   CategoryListScreen({super.key});
@@ -24,11 +25,60 @@ class CategoryListScreen extends StatelessWidget {
       appBar: AppBar(
         title: const Text('List'),
         centerTitle: true,
-        leading: const Icon(Icons.arrow_back),
-        actions: const [
-          Padding(
-            padding: EdgeInsets.only(right: 12.0),
-            child: Icon(Icons.search),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (_) => const JobseekerDashboard()),
+            );
+          },
+        ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.search),
+            onPressed: () {
+              final TextEditingController searchController =
+                  TextEditingController();
+              showDialog(
+                context: context,
+                builder: (context) {
+                  return AlertDialog(
+                    title: const Text('Search Jobs'),
+                    content: TextField(
+                      controller: searchController,
+                      decoration: const InputDecoration(
+                        hintText: 'Type keyword...',
+                      ),
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(context),
+                        child: const Text('Cancel'),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          final q = searchController.text.trim();
+                          Navigator.pop(context);
+                          if (q.isNotEmpty) {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => JobListPage(
+                                  category: 'All',
+                                  searchQuery: q,
+                                ),
+                              ),
+                            );
+                          }
+                        },
+                        child: const Text('Search'),
+                      ),
+                    ],
+                  );
+                },
+              );
+            },
           ),
         ],
       ),

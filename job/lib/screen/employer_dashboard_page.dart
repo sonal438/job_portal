@@ -1,12 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'job seeker/post_job_screen.dart';
-import 'chat_page.dart'; // <-- Import your chat screen
+import 'job seeker/job_list_page.dart';
+import 'chat_page.dart';
+import 'view_applicants_page.dart'; // ← ADD THIS FILE
 
 class EmployerDashboardPage extends StatelessWidget {
   const EmployerDashboardPage({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final currentUser = FirebaseAuth.instance.currentUser;
+
     return Scaffold(
       appBar: AppBar(
         backgroundColor: const Color(0xFFB7CFEA),
@@ -24,11 +29,64 @@ class EmployerDashboardPage extends StatelessWidget {
           crossAxisSpacing: 20,
           mainAxisSpacing: 20,
           childAspectRatio: 4,
-          children: const [
-            DashboardItem(icon: Icons.campaign, title: "Post Jobs"),
-            DashboardItem(icon: Icons.visibility, title: "View Posted Jobs"),
-            DashboardItem(icon: Icons.person_search, title: "View Applicants"),
-            DashboardItem(icon: Icons.chat_bubble_outline, title: "Chat"),
+          children: [
+            DashboardItem(
+              icon: Icons.campaign,
+              title: "Post Jobs",
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const PostJobScreen()),
+                );
+              },
+            ),
+
+            DashboardItem(
+              icon: Icons.visibility,
+              title: "View Posted Jobs",
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const JobListPage(category: "All"),
+                  ),
+                );
+              },
+            ),
+
+            // VIEW APPLICANTS CONNECTED HERE
+            DashboardItem(
+              icon: Icons.person_search,
+              title: "View Applicants",
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) =>
+                        ViewApplicantsPage(employerId: currentUser!.uid),
+                  ),
+                );
+              },
+            ),
+
+            // CHAT CONNECTED HERE
+            DashboardItem(
+              icon: Icons.chat_bubble_outline,
+              title: "Chat",
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => ChatScreen(
+                      senderId: currentUser!.uid,
+                      receiverId: "jobseeker_id_here",
+                      receiverName: '',
+                      // later replace with selected applicant id
+                    ),
+                  ),
+                );
+              },
+            ),
           ],
         ),
       ),
@@ -39,25 +97,19 @@ class EmployerDashboardPage extends StatelessWidget {
 class DashboardItem extends StatelessWidget {
   final IconData icon;
   final String title;
+  final VoidCallback onTap;
 
-  const DashboardItem({super.key, required this.icon, required this.title});
+  const DashboardItem({
+    super.key,
+    required this.icon,
+    required this.title,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () {
-        if (title == "Post Jobs") {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const PostJobScreen()),
-          );
-        } else if (title == "Chat") {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const ChatTabScreen()),
-          );
-        }
-      },
+      onTap: onTap,
       child: Container(
         decoration: BoxDecoration(
           color: const Color(0xFFE7F0FA),

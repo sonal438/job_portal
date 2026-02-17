@@ -23,6 +23,10 @@ class ApplicationModel {
     );
   }
 
+  get jobTitle => null;
+
+  set jobTitle(jobTitle) {}
+
   Map<String, dynamic> toMap() {
     return {
       'jobId': jobId,

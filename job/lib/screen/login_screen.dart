@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:job/screen/job%20seeker/jobseeker_dashboard_page.dart';
 
 import 'job seeker/category_list_screen.dart';
 import 'employer_dashboard_page.dart';
@@ -19,6 +20,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController passwordController = TextEditingController();
 
   bool isLoading = false;
+  bool _obscurePassword = true;
 
   @override
   Widget build(BuildContext context) {
@@ -139,7 +141,7 @@ class _LoginScreenState extends State<LoginScreen> {
       } else {
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (_) => CategoryListScreen()),
+          MaterialPageRoute(builder: (_) => JobseekerDashboard()),
         );
       }
     } catch (e) {
@@ -164,7 +166,7 @@ class _LoginScreenState extends State<LoginScreen> {
       ),
       child: TextField(
         controller: controller,
-        obscureText: isPassword,
+        obscureText: isPassword ? _obscurePassword : false,
         decoration: InputDecoration(
           hintText: hint,
           border: InputBorder.none,
@@ -172,6 +174,19 @@ class _LoginScreenState extends State<LoginScreen> {
             horizontal: 16,
             vertical: 18,
           ),
+          suffixIcon: isPassword
+              ? GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      _obscurePassword = !_obscurePassword;
+                    });
+                  },
+                  child: Icon(
+                    _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                    color: Colors.grey.shade600,
+                  ),
+                )
+              : null,
         ),
       ),
     );

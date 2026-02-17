@@ -98,7 +98,7 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => const CreateProfilePage(),
+                      builder: (context) => const CreateProfilePage(userId: ''),
                     ),
                   );
                 },
